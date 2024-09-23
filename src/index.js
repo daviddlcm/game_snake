@@ -1,6 +1,6 @@
-import { PhaserGame } from './infrastructure/PhaserGame.js'; // Asegúrate de que la ruta sea correcta
+import { PhaserGame } from './infrastructure/PhaserGame.js'; 
 
 
 window.onload = () => {
-    new PhaserGame(); // Inicializa el juego
+    new PhaserGame();
 };
