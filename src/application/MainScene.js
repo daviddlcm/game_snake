@@ -131,12 +131,29 @@ export class MainScene extends Phaser.Scene {
                 this.foodWorker.postMessage({ action: "eat" });
                 this.repositionFood();
             }
-
+    
             if (this.block && this.snake.head.x === this.block.block.x && this.snake.head.y === this.block.block.y) {
-                this.snake.alive = false;
+                
+                this.block.destroy();
+                
+                this.block = null;
+    
+                this.repositionBlock();
             }
         }
     }
+    
+    repositionBlock() {
+        const testGrid = this.board.createGrid();
+        this.snake.updateGrid(testGrid);
+    
+        const validLocations = this.board.getValidLocations(testGrid);
+    
+        if (validLocations.length > 0) {
+            this.blockWorker.postMessage({ action: "reposition", data: { validLocations } });
+        }
+    }
+    
     
 
     repositionFood() {

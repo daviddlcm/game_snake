@@ -1,12 +1,8 @@
-// BlockWorker.js
-self.addEventListener("message", (e) => {
+onmessage = function(e) {
     const { action, data } = e.data;
-
     if (action === "reposition") {
-        const { validLocations } = data;
-        if (validLocations && validLocations.length > 0) {
-            const pos = validLocations[Math.floor(Math.random() * validLocations.length)];
-            self.postMessage({ action: "repositioned", position: pos });
-        }
+        const validLocations = data.validLocations;
+        const newPosition = validLocations[Math.floor(Math.random() * validLocations.length)];
+        postMessage({ action: "repositioned", position: newPosition });
     }
-});
+};
