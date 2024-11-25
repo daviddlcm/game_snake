@@ -6,14 +6,27 @@ html, body {
     height: 100%;
 }
 
-#pauseButton{
+#pauseButton, #infoButton {
     position: absolute;
     top: 10px;
-    left: 10px;
     padding: 5px 10px;
     font-size: 16px;
     background-color: #f0f0f0;
     border: 1px solid #ccc;
     cursor: pointer;
     opacity: 0.1;
+    transition: opacity 0.3s ease, background-color 0.3s ease;
+}
+
+#pauseButton:hover, #infoButton:hover {
+    opacity: 1; 
+    background-color: #ffffff;
+}
+
+#pauseButton {
+    left: 10px;
+}
+
+#infoButton {
+    left: 100px;
 }

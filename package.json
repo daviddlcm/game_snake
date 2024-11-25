@@ -1,7 +1,7 @@
 {
-  "homepage": "https://daviddlcm.github.io/game_snake/",
+  "homepage": "https://daviddlcm.github.io/game_snake",
   "scripts": {
-    "deploy": "gh-pages -d ."
+    "deploy": "gh-pages -d ./src"
   },
   "dependencies": {
     "phaser": "^3.85.2"

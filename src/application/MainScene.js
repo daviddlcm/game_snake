@@ -26,6 +26,8 @@ export class MainScene extends Phaser.Scene {
     create() {
         this.board = new Board(this);
         this.food = new Food(this, 3, 4);
+
+        
         this.snake = new Snake(this, 8, 8);
         
         
@@ -45,6 +47,50 @@ export class MainScene extends Phaser.Scene {
         pauseButton.addEventListener('click', () => {
             this.togglePause(pauseButton);
         });
+        const infoButton = document.getElementById('infoButton');
+        infoButton.addEventListener('click', () => {
+        this.showGameInfo(); 
+    });
+    }
+    showGameInfo() {
+        const infoMessage = `
+            <div id="infoOverlay" style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                color: #fff;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                padding: 20px;
+                z-index: 1000;
+            ">
+                <h2>Reglas del Juego</h2>
+                <p>1. Usa las flechas para mover la serpiente.</p>
+                <p>2. Come la comida para crecer y obtener puntos.</p>
+                <p>3. Evita chocar con el bloque o con tu propio cuerpo.</p>
+                <p>4. ¡El juego termina si chocas!</p>
+                <button id="closeInfoButton" style="
+                    background-color: #fff;
+                    border: none;
+                    padding: 10px 20px;
+                    font-size: 16px;
+                    margin-top: 20px;
+                    cursor: pointer;
+                ">Cerrar</button>
+            </div>
+        `;
+    
+        document.body.insertAdjacentHTML('beforeend', infoMessage);
+    
+        document.getElementById('closeInfoButton').addEventListener('click', () => {
+            document.getElementById('infoOverlay').remove();
+        });
     }
 
     createFoodWorker() {
@@ -60,20 +106,40 @@ export class MainScene extends Phaser.Scene {
     }
 
     createBlockWorker() {
-        if (typeof(Worker) !== "undefined") {
+        if (typeof Worker !== "undefined") {
             this.blockWorker = new Worker('./infrastructure/workers/blockWorker.js');
+    
             const validLocations = this.board.getValidLocations(this.snake.updateGrid(this.board.createGrid()));
-
             this.blockWorker.postMessage({ action: "reposition", data: { validLocations } });
-
+    
             this.blockWorker.onmessage = (e) => {
                 const { action, position } = e.data;
                 if (action === "repositioned" && position) {
-                    this.block = new Block(this, position.x, position.y);
+                    if (this.block) {
+                        this.block.setPosition(position.x, position.y);
+                    } else {
+                        this.block = new Block(this, position.x, position.y);
+                    }
                 }
             };
+    
+            this.time.addEvent({
+                delay: 3000, 
+                callback: () => {
+                    const grid = this.board.createGrid();
+                    this.snake.updateGrid(grid);
+                    this.food.updateGrid(grid); 
+                    const validLocations = this.board.getValidLocations(grid);
+    
+                    if (validLocations.length > 0) {
+                        this.blockWorker.postMessage({ action: "reposition", data: { validLocations } });
+                    }
+                },
+                loop: true
+            });
         }
     }
+    
 
     startTimer() {
         if (typeof(Worker) !== "undefined") {
@@ -90,14 +156,28 @@ export class MainScene extends Phaser.Scene {
 
     togglePause(button) {
         this.isPaused = !this.isPaused;
+    
         if (this.isPaused) {
             this.timerWorker.postMessage({ action: "pause" });
+            if (this.foodWorker) {
+                this.foodWorker.postMessage({ action: "pause" });
+            }
+            if (this.blockWorker) {
+                this.blockWorker.postMessage({ action: "pause" });
+            }
             button.textContent = 'Reanudar';
         } else {
-            this.timerWorker.postMessage({ action: "resume" });  
+            this.timerWorker.postMessage({ action: "resume" });
+            if (this.foodWorker) {
+                this.foodWorker.postMessage({ action: "resume" });
+            }
+            if (this.blockWorker) {
+                this.blockWorker.postMessage({ action: "resume" });
+            }
             button.textContent = 'Pausa';
         }
     }
+    
 
     pad(number) {
         return number < 10 ? '0' + number : number;
